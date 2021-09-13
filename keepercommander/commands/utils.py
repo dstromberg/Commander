@@ -103,14 +103,17 @@ Commands to configure and manage the Keeper Secrets Manager platform.
 
   Usage:
 
-  {bcolors.BOLD}View Applications:{bcolors.ENDC}
+  {bcolors.BOLD}View All Applications:{bcolors.ENDC}
   {bcolors.OKGREEN}secrets-manager app list{bcolors.ENDC}
 
-  {bcolors.BOLD}Get Application:{bcolors.ENDC}
+  {bcolors.BOLD}View Application Details and Client Devices:{bcolors.ENDC}
   {bcolors.OKGREEN}secrets-manager app get {bcolors.OKBLUE}[APP NAME OR UID]{bcolors.ENDC}
 
   {bcolors.BOLD}Create Application:{bcolors.ENDC}
   {bcolors.OKGREEN}secrets-manager app create {bcolors.OKBLUE}[NAME]{bcolors.ENDC}
+
+  {bcolors.BOLD}Delete Application:{bcolors.ENDC}
+  {bcolors.OKGREEN}secrets-manager app remove {bcolors.OKBLUE}[NAME]{bcolors.ENDC}
 
   {bcolors.BOLD}Add Client Device:{bcolors.ENDC}
   {bcolors.OKGREEN}secrets-manager client add --app {bcolors.OKBLUE}[APP NAME OR UID] {bcolors.OKGREEN}--unlock-ip{bcolors.ENDC}
@@ -968,13 +971,22 @@ class KSMCommand(Command):
                         sht = ApplicationShareType.Name(s.shareType)
 
                         if sht == 'SHARE_TYPE_RECORD':
-                            record = recs.get(uid_str)
-                            record_data_dict = KSMCommand.record_data_as_dict(record)
-                            row = ['RECORD', uid_str, record_data_dict.get('title')]
+
+                            if uid_str not in recs:
+                                rec_name = "[Out Of Sync]"
+                            else:
+                                record = recs.get(uid_str)
+                                record_data_dict = KSMCommand.record_data_as_dict(record)
+                                rec_name = record_data_dict.get('title')
+
+                            row = ['RECORD', uid_str, rec_name]
                         elif sht == 'SHARE_TYPE_FOLDER':
-                            cached_sf = params.shared_folder_cache[uid_str]
-                            shf_name = cached_sf.get('name_unencrypted')
-                            # shf_num_of_records = len(cached_sf.get('records'))
+                            if uid_str not in params.shared_folder_cache:
+                                shf_name = "[Out Of Sync]"
+                            else:
+                                cached_sf = params.shared_folder_cache[uid_str]
+                                shf_name = cached_sf.get('name_unencrypted')
+                                # shf_num_of_records = len(cached_sf.get('records'))
 
                             row = ['FOLDER', uid_str, shf_name]
                         else:
